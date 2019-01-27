@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/style.css"> <!-- Подключаем CSS -->
+</head>
+
+<body>
+    <header>
+        <div class="roll-container">
+            <ul class="expanded animate paused">
+                <li><span>0</span></li>
+                <li><span>1</span></li>
+                <li><span>0</span></li>
+                <li><span>1</span></li>
+                <li><span>0</span></li>
+                <li><span>1</span></li>
+                <li><span>0</span></li>
+                <li><span>1</span></li>
+            </ul>
+        </div>
+        <span class="arrow"></span>
+        <div class="controll-panel">
+            <div class="history-table-wrapper">
+                <table class="history-table" id="history-table"></table>
+            </div>
+            <div class="control-input-wrapper">
+                <div class="radio-wrapper">
+                    <label for="black">Black</label>
+                    <input type="radio" id="black" name="bet" value="1" checked>
+                </div>
+                <div class="radio-wrapper">
+                    <label for="white">Red</label>
+                    <input type="radio" id="white" name="bet" value="0">
+                </div>
+            </div>
+            <div style="margin-top: auto;">
+                <button class="btn" id="roll-btn">Roll</button>
+                <button class="btn" id="hide-btn">Hide</button>
+            </div>
+            <div class="history-list">
+                <div class="color-history">
+                    <ul class="history-list" id="history-list">
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="percent-of-win">
+            100%
+        </div>
+
+    </header>
+    <script>
+
+        function createNotification(status) {
+            let div = document.createElement('div');
+            div.classList.add('notification-wrap');
+
+            if (status) {
+                div.innerHTML = "Win";
+                div.classList.add("successful");
+            } else {
+                div.innerHTML = "Lost";
+            }
+
+            document.body.appendChild(div);
+            let notifications = document.getElementsByClassName('notification-wrap');
+
+            setTimeout(() => {
+                document.body.removeChild(notifications[0]);
+
+                if (notifications.length) {
+                    for (let i = 0; i < notifications.length; i++) {
+
+                        if (!i) {
+                            notifications[i].style.top = 0 + 'px';
+                        } else {
+                            notifications[i].style.top = (notifications[i].offsetHeight) * i + (20 * i) + 'px';
+                        }
+
+                    }
+                }
+            }, 10000);
+
+            if (notifications.length > 1) {
+                for (let i = 0; i < notifications.length; i++) {
+
+                    if (i === 0) {
+                        notifications[i].style.top = 0 + 'px';
+                    } else {
+                        notifications[i].style.top = (notifications[i].offsetHeight) * i + (20 * i) + 'px';
+                    }
+
+                }
+            }
+        }
+
+        let rollBtn = document.getElementById("roll-btn");
+        let hideBtn = document.getElementById("hide-btn");
+
+        rollBtn.onclick = function () {
+            let circle = document.querySelector('ul');
+            let li = document.querySelectorAll('li');
+            let black = document.getElementById('black');
+            let white = document.getElementById('white');
+            let checked = black.checked ? '1' : '0';
+            let sec = Math.random();
+            circle.classList.remove('paused');
+
+            setTimeout(() => {
+                circle.classList.add('paused');
+                let dots = [];
+                offset = li[1].getBoundingClientRect();
+                for (let i = 0; i < li.length; i++) {
+                    let offset = li[i].getBoundingClientRect();
+                    dots.push(offset.bottom);
+                }
+                let bottom = Math.max.apply(null, dots);
+                let indexOfElement = dots.indexOf(bottom);
+                let bottomElement = li[indexOfElement];
+                let text = bottomElement.childNodes[0].innerHTML;
+
+                if (text === checked) {
+                    console.log("win");
+                    createNotification(true);
+                } else {
+                    console.log("lost");
+                    createNotification(false);
+                }
+
+                addColorToHistory(text);
+                addRecordToHistory(parseInt(checked) ? 'Black' : 'Red', text === checked ? 'Win' : 'Lost', parseDate(new Date()));
+            }, sec * 5000);
+
+        };
+        function parseDate(date) {
+            let day = date.getDate();
+            let monthIndex = date.getMonth();
+            let year = date.getFullYear();
+            let hours = date.getHours();
+            if (hours < 10) hours = '0' + hours;
+            let minutes = date.getMinutes();
+            if (minutes < 10) minutes = '0' + minutes;
+            let seconds = date.getSeconds();
+            if (seconds < 10) seconds = '0' + seconds;
+            return day + '/' + monthIndex + 1 + '/' + year + ' ' + hours + ':' + minutes + ':' + seconds;
+        }
+
+        hideBtn.onclick = function () {
+            let circle = document.querySelector('ul');
+
+            if (circle.classList.contains('expanded')) {
+                circle.classList.remove('expanded');
+            } else {
+                circle.classList.add('expanded');
+            }
+
+        };
+        addColorToHistory();
+        function addColorToHistory(status) {
+            let historyArray = [];
+            let histroyListWrapper = document.getElementById('history-list');
+            histroyListWrapper.innerHTML = '';
+            historyArray = localStorage.getItem('colorHistory');
+
+            if (status) {
+                if (!historyArray) {
+                    historyArray = [];
+                    historyArray.push(status);
+                    localStorage.setItem('colorHistory', JSON.stringify(historyArray));
+                } else {
+                    historyArray = JSON.parse(historyArray);
+                    historyArray.push(status);
+                    if (historyArray.length > 10) {
+                        historyArray.splice(0, historyArray.length - 10);
+                    }
+                    localStorage.setItem('colorHistory', JSON.stringify(historyArray));
+                }
+            } else {
+                historyArray = JSON.parse(historyArray);
+            }
+            if (historyArray) {
+                for (let i = 0; i < historyArray.length; i++) {
+                    let li = document.createElement('li');
+                    li.classList.add('item');
+
+                    if (parseInt(historyArray[i])) {
+                        li.classList.add('black');
+                        histroyListWrapper.appendChild(li);
+                    } else {
+                        li.classList.add('red');
+                        histroyListWrapper.appendChild(li);
+                    }
+                }
+            }
+        }
+
+        addRecordToHistory();
+        function addRecordToHistory(bet, status, date) {
+            let historyTable = document.getElementById('history-table');
+            historyTable.innerHTML = '';
+            let header = document.createElement('tr');
+            let th1 = document.createElement('th');
+            th1.innerHTML = 'Bet';
+            header.appendChild(th1);
+            let th2 = document.createElement('th');
+            header.appendChild(th2);
+            th2.innerHTML = 'Status';
+            let th3 = document.createElement('th');
+            th3.innerHTML = 'Date';
+            header.appendChild(th3);
+            historyTable.appendChild(header);
+            let historyArray;
+            historyArray = localStorage.getItem('tableHistory');
+            debugger;
+            if (bet && status && date) {
+                let buff = {
+                    bet: bet,
+                    status: status,
+                    date: date
+                };
+                if (!historyArray) {
+                    historyArray = [];
+                    historyArray.push(buff);
+                    localStorage.setItem('tableHistory', JSON.stringify(historyArray));
+                } else {
+                    historyArray = JSON.parse(historyArray);
+                    historyArray.push(buff);
+                    if (historyArray.length > 100) {
+                        historyArray.splice(0, historyArray.length - 100);
+                    }
+                    localStorage.setItem('tableHistory', JSON.stringify(historyArray));
+                }
+            } else {
+                historyArray = JSON.parse(historyArray);
+            }
+            if (historyArray) {
+                for (let i = 0; i < historyArray.length; i++) {
+                    debugger;
+                    let tr = document.createElement('tr');
+                    for (let key in historyArray[i]) {
+                        let td = document.createElement('td');
+                        td.innerHTML = historyArray[i][key];
+                        tr.appendChild(td);
+                    }
+                    historyTable.appendChild(tr);
+                }
+            }
+        }
+        function allHistory() {
+
+        }
+    </script>
+</body>
+
+</html>
