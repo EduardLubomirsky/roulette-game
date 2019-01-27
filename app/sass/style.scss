@@ -233,18 +233,56 @@ label {
     color: #fff;
 }
 .control-input-wrapper {
+  display: flex;
 	.radio-wrapper {
-		label {
+    margin: 20px;
+		input {
+      display: none;
+    }
+    label {
 			position: relative;
 			font-size: 0px;
+      display: flex;
+      width: 30px;
+      height: 30px;
 			&::after{
 				content: '';
 				display: block;
 				position: absolute;
 				width: 30px;
 				height: 30px;
-				background: red;
+				background: #a10024;
+        border-radius: 10px;
 			}
+      &::before{
+        content: '';
+        transform: scale(0);
+        transition: .2s;
+      }
 		}
+
+    input[type="radio"]:checked + label{
+      &::before {
+        content: '';
+        z-index: 1;
+        display: block;
+        position: absolute;
+        top: calc(50% - 7.5px);
+        right: calc(50% - 7.5px);
+        width: 15px;
+        height: 15px;
+        background-color: #fff;
+        border-radius: 5px;
+        transition: .2s;
+        transform: scale(1);
+      }
+    }
 	}
+  .radio-wrapper:first-child {;
+      label {
+        &::after{
+        background: #52574c;
+      }
+    }
+  }
 }
